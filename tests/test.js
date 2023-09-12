@@ -1,5 +1,4 @@
 const { By, Key, Builder } = require("selenium-webdriver");
-const { until } = require("selenium-webdriver");
 require("chromedriver");
 
 const testCase = async () => {
