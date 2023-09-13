@@ -1,6 +1,18 @@
 const { By, Key, Builder, until } = require("selenium-webdriver");
 require("chromedriver");
 
+const fs = require("fs");
+
+const logFilePath = "consoleLog.txt";
+
+const logStream = fs.createWriteStream(logFilePath, { flags: "w" });
+
+const originalConsoleLog = console.log;
+console.log = function (message) {
+    originalConsoleLog.apply(console, arguments);
+    logStream.write(message + "\n");
+};
+
 const scrape = async () => {
     let driver = await new Builder().forBrowser("chrome").build();
 
@@ -12,7 +24,7 @@ const scrape = async () => {
     itemElements = await driver.findElements(By.className("product-item-info"));
 
     console.log(
-        `Searching NZ Muscle Clearance - found ${itemElements.length} items`
+        `***** Searching NZ Muscle Clearance - found ${itemElements.length} items *****`
     );
 
     for (let i = 0; i < itemElements.length; i++) {
@@ -45,7 +57,7 @@ const scrape = async () => {
 
     const products = await driver.findElements(By.className("product"));
     console.log(
-        `Searching SprintFit Clearance - found ${products.length} items`
+        `***** Searching SprintFit Clearance - found ${products.length} items *****`
     );
 
     for (let i = 0; i < products.length; i++) {
@@ -65,7 +77,9 @@ const scrape = async () => {
 
     const asnItems = await driver.findElements(By.className("product-wrap"));
 
-    console.log(`Searching ASN specials - found ${asnItems.length} items`);
+    console.log(
+        `***** Searching ASN specials - found ${asnItems.length} items *****`
+    );
 
     for (let i = 0; i < asnItems.length; i++) {
         const title = await asnItems[i]
@@ -109,7 +123,7 @@ const scrape = async () => {
     );
 
     console.log(
-        `Searching Xplosiv clearance - found ${xplosivItems.length} items`
+        `***** Searching Xplosiv clearance - found ${xplosivItems.length} items *****`
     );
 
     for (let i = 0; i < xplosivItems.length; i++) {
