@@ -12,6 +12,25 @@ const scrape = async () => {
         discounts: [],
     };
 
+    const scrollDown = async () => {
+        const windowHeight = await driver.executeScript(
+            "return window.innerHeight"
+        );
+        const totalHeight = await driver.executeScript(
+            "return document.documentElement.scrollHeight"
+        );
+        const scrollHeight = totalHeight * 0.9;
+        await driver.executeScript(
+            `window.scrollTo(0, ${scrollHeight - windowHeight})`
+        );
+        await driver.sleep(1500);
+    };
+
+    for (let i = 0; i < 5; i++) {
+        await scrollDown();
+        console.log("scrolling");
+    }
+
     const titles = await driver.findElements(
         By.className("ProductItem__Title")
     );
