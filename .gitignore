@@ -13,6 +13,7 @@ dist
 dist-ssr
 *.local
 consoleLog.txt
+groovyinfo.txt
 
 # Editor directories and files
 .vscode/*
