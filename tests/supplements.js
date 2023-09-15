@@ -154,6 +154,7 @@ const scrape = async () => {
 
     setInterval(function () {
         driver.quit();
+        logStream.end();
     }, 20000);
 };
 
