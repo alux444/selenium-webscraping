@@ -5,9 +5,9 @@ const fs = require("fs");
 const logFilePath = "groovyinfo.txt";
 const logStream = fs.createWriteStream(logFilePath, { flags: "w" });
 writeToLog = function (item) {
-    const message = `${item.name} ${item.artists}\n${
-        item.price
-    } - ${item.discount.toFixed(1)}% OFF\n--------`;
+    const message = `${item.name} ${
+        item.artists == "" ? "" : `- ${item.artists}`
+    }\n$${item.price} - ${item.discount.toFixed(1)}% OFF\n--------`;
     logStream.write(message + "\n");
 };
 
@@ -45,10 +45,7 @@ const scrape = async () => {
     }
 
     console.log("Scrape Completed.");
-
-    setInterval(function () {
-        driver.quit();
-    }, 20000);
+    driver.quit();
 };
 
 const goToNextPage = async (minDiscountPercent, driver, array) => {
@@ -109,7 +106,9 @@ const findItemsOnPage = async (minDiscountPercent, driver, array) => {
             const discount = ((oldPrice - price) / oldPrice) * 100;
 
             if (discount > minDiscountPercent) {
-                console.log(`${itemName} ${artists}`);
+                console.log(
+                    `${itemName} ${artists === "" ? "" : `- ${artists}`}`
+                );
                 console.log(`$${price} - ${discount.toFixed(1)}% OFF`);
                 console.log("----------");
                 array.push({
