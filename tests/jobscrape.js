@@ -7,8 +7,13 @@ const logFilePath = "jobs.txt";
 
 const logStream = fs.createWriteStream(logFilePath, { flags: "w" });
 
-writeToLog = function (job) {
+writeIndeed = function (job) {
     const message = `${job.title}\n${job.link}\n-----`;
+    logStream.write(message + "\n");
+};
+
+writeSeek = function (job) {
+    const message = `${job.title} - ${job.company}\n${job.link}\n-----`;
     logStream.write(message + "\n");
 };
 
@@ -57,13 +62,13 @@ const scrape = async () => {
 
     //visit indeed
     await driver.get(
-        "https://au.indeed.com/jobs?q=graduate+civil+engineer&l=Australia&vjk=40cda34a077e0ed0"
+        "https://au.indeed.com/jobs?q=graduate+civil+engineer&l=Melbourne+VIC&vjk=a194741051536416"
     );
 
     driver.sleep(5000);
 
     const indeedJobs = {
-        title: "Indeed Jobs - By New",
+        title: "Indeed Jobs",
         jobs: [],
     };
 
@@ -71,14 +76,37 @@ const scrape = async () => {
 
     let nextPageAvailable = true;
     while (nextPageAvailable) {
-        nextPageAvailable = await goToNextPage(driver, indeedJobs);
+        nextPageAvailable = await goToNextIndeedPage(driver, indeedJobs);
         if (nextPageAvailable) {
             await new Promise((resolve) => setTimeout(resolve, 2000));
         }
     }
 
     for (job of indeedJobs.jobs) {
-        writeToLog(job);
+        writeIndeed(job);
+    }
+
+    //visit seek
+    await driver.get(
+        "https://www.seek.co.nz/Graduate-jobs-in-engineering/civil-structural-engineering/in-All-Melbourne-VIC-AU?sortmode=ListedDate"
+    );
+
+    driver.sleep(5000);
+
+    const seekJobs = { title: "Seek Jobs", jobs: [] };
+
+    await scrapeFromSeek(driver, seekJobs);
+
+    let nextPageAvailableSeek = true;
+    while (nextPageAvailableSeek) {
+        nextPageAvailableSeek = await goToNextSeekPage(driver, seekJobs);
+        if (nextPageAvailableSeek) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+    }
+
+    for (job of seekJobs.jobs) {
+        writeSeek(job);
     }
 
     console.log("Scrape Completed.");
@@ -87,7 +115,7 @@ const scrape = async () => {
     logStream.end();
 };
 
-const goToNextPage = async (driver, indeedJobs) => {
+const goToNextIndeedPage = async (driver, indeedJobs) => {
     try {
         const nextPageButton = await driver.findElement(
             By.xpath("//a[@data-testid='pagination-page-next']")
@@ -133,6 +161,51 @@ const scrapeFromIndeed = async (driver, indeedJobs) => {
             };
             console.log(results);
             indeedJobs.jobs.push(results);
+        } catch (error) {}
+    }
+};
+
+const goToNextSeekPage = async (driver, seekJobs) => {
+    try {
+        const nextPageButton = await driver.findElement(
+            By.xpath("//a[@aria-label='Next']")
+        );
+        await nextPageButton.click();
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        await scrapeFromSeek(driver, seekJobs);
+
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
+
+const scrapeFromSeek = async (driver, seekJobs) => {
+    const jobElements = await driver.findElements(
+        By.xpath("//article[@data-card-type='JobCard']")
+    );
+    console.log(jobElements.length);
+
+    for (let i = 0; i < jobElements.length; i++) {
+        try {
+            const title = await jobElements[i].getAttribute("aria-label");
+            const linkElements = await jobElements[i].findElements(
+                By.xpath(".//a")
+            );
+
+            const link = await linkElements[0].getAttribute("href");
+            const company = await linkElements[2].getText();
+
+            const results = {
+                title: title,
+                link: link,
+                company: company,
+            };
+
+            console.log(results);
+            seekJobs.jobs.push(results);
         } catch (error) {}
     }
 };
